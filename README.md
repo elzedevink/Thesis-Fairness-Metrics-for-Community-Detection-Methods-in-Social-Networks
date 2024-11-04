@@ -1,6 +1,6 @@
 # Fairness Metrics for Community Detection Methods in Social Networks
 
-This repository contains code written for my Master thesis titled "Fairness Metrics for Community Detection Methods in Social Networks". This is available to read here (add PDF to repo).
+This repository contains code written for my Master thesis titled "Fairness Metrics for Community Detection Methods in Social Networks". This thesis is available to read here (add PDF to repo) and was supervised by Dr. Akrati Saxena and Dr. Frank Takes.
 
 This work has been accepted to present at [NetSci-X 2025](https://netscix2025.iiti.ac.in/) and [NetSci-NL Symposium](https://www.netsci.nl/netscinl-symposium/). It will also be published as a full paper by [Complex Networks 2024](https://complexnetworks.org/). See:
 [de Vink, E., Saxena, A.: Group fairness metrics for community detection methods in social networks (2024).](https://arxiv.org/abs/2410.05487)
