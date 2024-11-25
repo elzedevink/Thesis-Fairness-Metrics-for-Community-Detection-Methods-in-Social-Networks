@@ -1,11 +1,11 @@
 # Fairness Metrics for Community Detection Methods in Social Networks
 
-This repository contains code written for my Master thesis titled "Fairness Metrics for Community Detection Methods in Social Networks". This thesis is available to read here (add PDF to repo) and was supervised by Dr. Akrati Saxena and Dr. Frank Takes.
+This repository contains code written for my Master thesis titled "Fairness Metrics for Community Detection Methods in Social Networks". This thesis is available to read in pdf form. This work was supervised by Dr. Akrati Saxena and Dr. Frank Takes.
 
 This work has been accepted to present at [NetSci-X 2025](https://netscix2025.iiti.ac.in/) and [NetSci-NL Symposium](https://www.netsci.nl/netscinl-symposium/). It will also be published as a full paper by [Complex Networks 2024](https://complexnetworks.org/). See:
 [de Vink, E., Saxena, A.: Group fairness metrics for community detection methods in social networks (2024).](https://arxiv.org/abs/2410.05487)
 
-A shortened (and more clear) version of my code is available [here](https://github.com/elzedevink/fairness-metrics-community-detection/). This only includes code to generate the results shown in the Complex Networks 2024 paper.
+A shortened version of my code is available [here](https://github.com/elzedevink/fairness-metrics-community-detection/). This only includes code to generate the results shown in the Complex Networks 2024 paper.
 
 ## Files
 **generate_networks.py**: Generates LFR benchmark networks
