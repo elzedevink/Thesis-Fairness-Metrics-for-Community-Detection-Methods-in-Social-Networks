@@ -32,3 +32,28 @@ A shortened version of my code is available [here](https://github.com/elzedevink
 <img src="https://github.com/user-attachments/assets/d6db00f6-027d-45e3-a223-bbeafc4bcae2" alt="football_size_Phi_FCCN" width="450">
 
 Example of fairness analysis for the football network regarding size with FCCN as the community-wise performance metric.
+
+
+## Code usage
+Example of using set_communities.py, get_results.py, and create_figures.py. We use the data in data/synthetic/example. The code requires the required directory to be provided after `-d`. set_community.py requires data from /data/, get_results.py requires data from /data_applied_methods.py/, and create_figures.py requires data from /results/.
+
+Network generation
+```
+python3 generate_networks.py 
+```
+
+Applying community detection methods
+```
+python3 set_communities.py -d data/synthetic/example/
+```
+
+Get fairness metric and prediction accuracy results
+```
+python3 get_results.py -d data_applied_methods/synthetic/example/
+```
+
+Create figures showing fairness metric and prediction accuracy results
+```
+python3 create_figures.py -d results/synthetic/example/
+```
+
