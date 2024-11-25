@@ -25,7 +25,7 @@ A shortened version of my code is available [here](https://github.com/elzedevink
 
 **results**: contains fairness metric Phi and performance values
 
-**figures**: contains figures displaying the results
+**figures**: contains figures displaying the results. Only figures with NMI as the prediction accuracy metric are uploaded
 
 **figures/thesis_text**: This folder includes figures present in the thesis and code used to create these figures
 
