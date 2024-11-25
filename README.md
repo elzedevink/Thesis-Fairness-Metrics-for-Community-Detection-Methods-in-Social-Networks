@@ -14,11 +14,9 @@ A shortened version of my code is available [here](https://github.com/elzedevink
 
 **get_results.py**: Calculates fairness metric Phi for size, density, and conductance
 
-**create_figures.py**: gathers results, creates figures
+**create_figures.py**: gathers results, creates figures showing performance-fairness trade-off
 
 **my_module.py**: Helper functions
-
-**main.py**: Shows example of LFR network generation, CDM application and and prints fairness metric and performance values
 
 ## Folders
 **data**: network data in csv files showing ground-truth communities in 'networkname_nodes.csv' and edge adjacency list in 'networkname_edges.csv'
@@ -27,7 +25,9 @@ A shortened version of my code is available [here](https://github.com/elzedevink
 
 **results**: contains fairness metric Phi and performance values
 
-**figures**: contains figures displaying the results
+**figures**: contains figures displaying the results. Only figures with NMI as the prediction accuracy metric are uploaded
+
+**figures/thesis_text**: This folder includes figures present in the thesis and code used to create these figures
 
 <img src="https://github.com/user-attachments/assets/d6db00f6-027d-45e3-a223-bbeafc4bcae2" alt="football_size_Phi_FCCN" width="450">
 
