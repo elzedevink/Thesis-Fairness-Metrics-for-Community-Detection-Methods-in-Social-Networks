@@ -77,6 +77,9 @@ def generate_HICH_BA(dir_path, graphs_per_category, n, r):
         store_network(G, net_name, dir_path)
 
 if __name__ == '__main__':
+    dir_path_LFR = 'data/synthetic/example'
+    generate_LFR(dir_path_LFR, 500, 2, [0.2, 0.4, 0.6])
+    
     dir_path_LFR = 'data/synthetic/LFR_large_246'
     generate_LFR(dir_path_LFR, 10000, 5, [0.2, 0.4, 0.6])
 
@@ -87,5 +90,3 @@ if __name__ == '__main__':
     dir_path_HICH_BA = 'data/synthetic/HICH_BA/multiple_maj'
     r = [0.3, 0.3, 0.3, 0.03, 0.03, 0.03, 0.003, 0.003, 0.003]
     generate_HICH_BA(dir_path_HICH_BA, 5, 10000, r)
-
-

@@ -338,7 +338,8 @@ if __name__ == '__main__':
     save_figure = True
     
     # create separate figures for different mu or combine results
-    separate_by_mp = False 
+    #
+    separate_by_mp = True 
 
     # set acc_measure or set as None to use all acc_measures from 
     #   ['nmi', 'ari', 'vi', 'f1', 'nf1', 'rmi']
@@ -362,6 +363,7 @@ if __name__ == '__main__':
             mixing_param = 'xi'
         # if its not LFR or ABCD -> HICH-BA and separate_by_mp must be set to False
         elif separate_by_mp == True:
+            print('NOTE: separate_by_mp IS SET TO FALSE')
             separate_by_mp = False
 
         use_results_combined_networks(res_path, fig_path, acc_measure)
