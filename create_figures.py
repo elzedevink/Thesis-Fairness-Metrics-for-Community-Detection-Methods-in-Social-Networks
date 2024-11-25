@@ -329,20 +329,20 @@ def use_results_combined_networks(res_path, fig_path, acc_measure):
 
 if __name__ == '__main__':
     # settings
-    create_separate_legend = True
+    create_separate_legend = False
 
     # include individual legend
     individual_legend = False 
     
     # True: save figures, False: show figures
-    save_figure = False
+    save_figure = True
     
     # create separate figures for different mu or combine results
-    separate_by_mp = True 
+    separate_by_mp = False 
 
     # set acc_measure or set as None to use all acc_measures from 
     #   ['nmi', 'ari', 'vi', 'f1', 'nf1', 'rmi']
-    acc_measure = None 
+    acc_measure = 'nmi' # None 
 
     p = Parser()
     dir_name = p.directory 
@@ -360,6 +360,9 @@ if __name__ == '__main__':
             mixing_param = 'mu'
         elif 'ABCD' in res_path:
             mixing_param = 'xi'
+        # if its not LFR or ABCD -> HICH-BA and separate_by_mp must be set to False
+        elif separate_by_mp == True:
+            separate_by_mp = False
 
         use_results_combined_networks(res_path, fig_path, acc_measure)
 

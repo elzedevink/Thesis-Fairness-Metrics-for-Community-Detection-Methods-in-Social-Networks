@@ -18,24 +18,22 @@ import gensim
 from sklearn.cluster import KMeans
 from fairwalk import FairWalk
 from node2vec import Node2Vec
-    
-plt.rcParams.update({
-    "text.usetex": True,
-})
 
 warnings.filterwarnings('error', category=np.RankWarning)
 
+# global figure settings
+plt.rcParams.update({
+    "text.usetex": True,
+})
 colors = sns.color_palette('bright')
 markers = ['o', 's', '^', '*', 'D', '>']
 marker_sizes = [13, 13, 13, 15, 13, 13]
-
 linestyles = ['--', ':', '-.', (0, (3, 5, 1, 5, 1, 5)), (0, (3, 1, 1, 1, 1, 1))]
-
 fontsize_ticks = 24
 fontsize_label = 26
 
-# acc_measure = 'nmi'
 all_acc_measures = ['nmi', 'ari', 'vi', 'f1', 'nf1', 'rmi']
+
 
 def requires_directory():
     python_file = sys.argv[0]
@@ -43,7 +41,8 @@ def requires_directory():
         return False
     return True
 
-# for parsing directory and seed information when calling this code
+
+# for parsing directories when using set_communities.py/get_results.py/create_figures.py
 class Parser:
     def __init__(self):
         parser = argparse.ArgumentParser(description='Description for my parser')
@@ -55,6 +54,7 @@ class Parser:
         p = parser.parse_args()
         self.directory = p.directory
         self.network = p.network
+
 
 # returns for a given graph and algorithm the community assignments
 # returns the communities as a list of lists of nodes
@@ -72,6 +72,7 @@ def get_assignment(df, alg):
 
     return assignment
 
+# returns dictionary of NodeClustering objects
 def get_node_clustering_dict(G, df):
 
     algs = df.columns
@@ -79,31 +80,19 @@ def get_node_clustering_dict(G, df):
     node_clustering_dict = {}
     for alg in algs:
         assignment = get_assignment(df, alg)
+        # check if valid
         if not assignment:
             node_clustering_dict[alg] = None
             continue
 
-        if alg == 'ground_truth':
-            node_clustering_dict[alg] = NodeClustering(assignment, graph=G, method_name=alg)
-        elif '{' in alg:
-            i = alg.index('{')
-
-            # method_name = alg[:i-1] # removes parameter from method_name
-            method_name = alg
-            param = eval(alg[i:])
-
-            # node_clustering_dict keys are method_name (no parameter info)
-            node_clustering_dict[method_name] = NodeClustering(assignment, graph=G, 
-                method_name=method_name, method_parameters=param)
-        else:
-            # print('Warning: weird community prediction.')
-            # print(alg)
-            node_clustering_dict[alg] = NodeClustering(assignment, graph=G, method_name=alg)
+        node_clustering_dict[alg] = NodeClustering(assignment, graph=G, method_name=alg)
     
     return node_clustering_dict
 
 
 # returns networkx network from given directory, network name
+# if request_node_clustering: return node_clustering_dict
+# else return with comm_assignment_dict
 def get_network_communities(dir_path, net_name, request_node_clustering=True):
     graph_path = dir_path+'/'+net_name
     try:
@@ -124,6 +113,8 @@ def get_network_communities(dir_path, net_name, request_node_clustering=True):
 
     return G, comm_assignment_dict
 
+
+# change comm_assignment_dict to NodeClustering
 def to_NodeClustering(G, comm_assignment_dict):
     com_dict = {}
 
@@ -138,6 +129,8 @@ def to_NodeClustering(G, comm_assignment_dict):
     
     return NodeClustering(communities, graph=G, method_name='ground_truth')
 
+
+# store or show figure. Save figure if save_fig == True
 def save_or_show_fig(figure_str, save_fig):
     if save_fig:
         print(f'save fig: {figure_str}')
@@ -152,12 +145,15 @@ def print_dict(some_dict):
     print(json.dumps(some_dict, indent=4))
     
 
+# calculates jaccard similarity
 def jaccard_sim(a, b):
     a = set(a)
     b = set(b)
-
     return len(a.intersection(b)) / len(a.union(b))
 
+
+# similarity based method from other work
+# Rens Oostenbach - Fairness-Aware Analysis of Community Detection
 def greedy_sim_mapping(source, target):
     mapping = {}
     source_com = source.communities
@@ -208,6 +204,7 @@ def greedy_sim_mapping(source, target):
     return mapping
 
 
+# find highest similarity, remove this option by setting to -1
 def find_highest_set_zero(matrix):
     max_val = 0
     max_coord_options = []
@@ -237,6 +234,7 @@ def find_highest_set_zero(matrix):
     return max_val, max_coord
 
 
+# our mapping method, works by iteratively choosing highest similarity
 def iterative_mapping(source, target):
     mapping = []
 
@@ -268,11 +266,11 @@ def iterative_mapping(source, target):
     return sorted(mapping)
 
 
+"""
+    Given the ground-truth community (list) and predicted community (list),
+    return the mapped scores in a dictionary
+"""
 def calc_mapped_scores(G, gt_com, pred_com):
-    """
-        Given the ground-truth community (list) and predicted community (list),
-        return the mapped scores in a dictionary
-    """
     if pred_com == None:
         mapping_scores = {
             'mF1': 0,
@@ -319,18 +317,20 @@ def calc_mapped_scores(G, gt_com, pred_com):
     }
     return mapping_scores
 
-
+"""
+    Calculate fairness metric based on delta_y
+"""
 def calc_fairness_delta_y(delta_y):    
     return (2 * np.arctan(delta_y))/np.pi
 
-def calc_fairness_metric(x, y):
-    """
+
+"""
     Calculate fairness metric for given attribute values and metric scores
     :param x: attribute values
     :param y: metric scores
     :return fm: fairness metric
-    """
-
+"""
+def calc_fairness_metric(x, y):
     try:
         if np.max(x) == np.min(x):
             return None
@@ -345,25 +345,6 @@ def calc_fairness_metric(x, y):
 
     return fm
 
-
-# Sum of weighted precision, three versions, see notes
-def calc_SWP(overlaps, gt_size, pred_lens, version):
-    
-    WPs = [
-        ((overlaps[i]/gt_size) * (overlaps[i]/pred_lens[i]))
-        for i in range(len(pred_lens))
-    ]
-
-    WPs = [i for i in WPs if i != 0]
-
-    if version == 'v0':
-        return sum(WPs)
-    elif version == 'v1':
-        return sum(WPs)/len(WPs)
-    elif version == 'v2':
-        return sum(WPs)/(np.log2(len(WPs)+1))
-    print('Give Sum of Weighted Overlap version')
-    return -1
 
 # Sum of weighted f1
 def calc_SWF1(overlaps, gt_size, pred_lens, version='v0'):
@@ -388,6 +369,7 @@ def calc_SWF1(overlaps, gt_size, pred_lens, version='v0'):
     print('Give Sum of Weighted F1 version')
     return -1
 
+
 # Average of F1
 def calc_AF1(overlaps, gt_size, pred_lens):
     TPs = overlaps
@@ -404,6 +386,8 @@ def calc_AF1(overlaps, gt_size, pred_lens):
 
     return sum(F1s)/len(F1s)
 
+
+# Sum of weighted FCCE(+)
 def calc_SWFCCE(G, gt_com, pred_coms, overlaps, gt_size, version):
     gt_SG = G.subgraph(gt_com)
     gt_edges = gt_SG.edges()
@@ -442,6 +426,7 @@ def calc_SWFCCE(G, gt_com, pred_coms, overlaps, gt_size, version):
     else:
         print('give SWFCCE version')
 
+
 def calc_global_scores(G, gt_com, pred_coms):
     """
     Calculates global scores
@@ -467,6 +452,7 @@ def calc_global_scores(G, gt_com, pred_coms):
         'SWFCCE+': SWFCCEp
     }
     return global_scores
+
 
 def print_network_info(G, net_name, gt_coms=None):
     # print network data
@@ -508,6 +494,7 @@ def store_network(G, name, path):
     print(f'Stored {file_str} with {n} nodes and {num_com} communities')
 
 
+# show figure displaying degree distribution
 def show_degree_dist(G):
 
     degrees = sorted([G.degree[n] for n in G.nodes()])
@@ -529,6 +516,8 @@ def show_degree_dist(G):
     plt.xscale('log')
     plt.show()
 
+
+# show figure displaying community size distribution
 def show_community_dist(G):
     
     com_lens = {}
@@ -550,6 +539,7 @@ def show_community_dist(G):
     plt.show()
 
 
+# show figure displaying the conductance by community
 def show_community_conductance(G):
     com_dict = {}
 
@@ -574,6 +564,7 @@ def show_community_conductance(G):
     ax.scatter(x, y)
     plt.show()
 
+
 """
     The HICH-BA model uses the following parameters: 
     (i) n, i.e., the desired number of nodes,
@@ -587,115 +578,6 @@ def show_community_conductance(G):
     (vi) p_PA, the probability with which a new edge will be established using the 
         preferential attachment (PA)
 """
-def hichba(n,r,h,p_PA,p_N,p_T):
-    
-    num_com = len(r)
-    G = nx.Graph()
-    nx.set_node_attributes(G, [], 'ground_truth')
-    G.add_nodes_from(range(num_com))
-    nodes = len(G.nodes())
-    
-    choices_c = {c:[] for c in range(num_com)}
-    choices_weights_c = {c:{} for c in range(num_com)}
-    
-    c = 0
-    for v in G.nodes():
-        G.nodes[v]['ground_truth'] = c
-        choices_c[c].append(v)
-        choices_weights_c[c][v] = 1
-        c += 1
-    
-    L_values, x_val = [], []
-    pbar = tqdm(total=n, position=0, leave=True)
-    pbar.update(len(G.nodes()))
-    h_orig = h
-    while nodes < n:
-        # new node created
-        if random.uniform(0,1) <= p_N:
-            G.add_node(nodes)
-            source = nodes
-            nodes += 1
-            c = random.choices(range(num_com), weights=r, k=1)[0]
-            G.nodes[source]['ground_truth'] = c
-
-            choices_c[c].append(source)
-            choices_weights_c[c][source] = 1 
-
-            # choices of nodes in same com
-            choices = [x for x in choices_c[c] if x != source]
-            
-            # PA or not
-            if random.uniform(0, 1) <= (1-p_PA): weights = [1 for v in choices]
-            else: weights = [choices_weights_c[G.nodes[v]['ground_truth']][v] for v in choices]
-            
-            target = random.choices(choices, weights=weights, k=1)[0]
-
-            G.add_edge(source, target)
-
-            choices_weights_c[c][source] += 1
-            choices_weights_c[c][target] += 1
-            pbar.update(1)
-
-        # new connection
-        else:
-            # triad connection
-            if random.uniform(0,1) <= p_T:
-                possible_v = [x for x in G.nodes() if G.degree(x) >= 2]
-                if random.uniform(0,1) <= (1-p_PA):
-                    if len(possible_v) == 0: continue
-                    v = random.choice(possible_v)
-                else:
-                    if len(possible_v) == 0: continue
-                    v = random.choices(possible_v, weights=[G.degree(x)+1 for x in G.nodes() if G.degree(x) >= 2],k=1)[0]
-                    # v = random.choices(possible_v, weights=[G.degree(x) for x in G.nodes() if G.degree(x) >= 2],k=1)[0]
-                
-                target1 = random.choice(list(G.neighbors(v)))
-                options = [y for y in G.neighbors(v) if not G.has_edge(target1, y)]
-                if len(options) == 0: continue
-
-                # homophily
-                intra_inter = random.uniform(0, 1)
-                if intra_inter <= h: choices = [x for x in options if G.nodes[v]['ground_truth'] == G.nodes[x]['ground_truth']]
-                else: choices = [x for x in options if G.nodes[v]['ground_truth'] != G.nodes[x]['ground_truth']]
-                
-                if random.uniform(0, 1) <= (1-p_PA): weights = [1 for w in options]
-                else: weights=[choices_weights_c[G.nodes[w]['ground_truth']][w] for w in options] 
-                
-                if len(options) == 0: print('no', intra_inter); continue
-                target2 = random.choices(options, weights=weights, k=1)[0]
-                
-                G.add_edge(target1, target2)
-                choices_weights_c[G.nodes[target1]['ground_truth']][target1] += 1
-                choices_weights_c[G.nodes[target2]['ground_truth']][target2] += 1
-                
-            # random connection
-            else:
-                if random.uniform(0,1) <= (1-p_PA):
-                    v = random.choice([x for x in G.nodes()])
-                else:
-                    v=random.choices([x for x in G.nodes()], weights=[G.degree(x)+1 for x in G.nodes()],k=1)[0]
-                    # v = random.choices([x for x in G.nodes()], weights=[G.degree(x) for x in G.nodes()],k=1)[0]
-                    
-                neigh = list(G.neighbors(v))
-                options = [x for x in G.nodes() if x not in neigh]
-                intra_inter = random.uniform(0, 1)
-                if intra_inter <= h: choices = [x for x in options if G.nodes[v]['ground_truth'] == G.nodes[x]['ground_truth']]
-                else: choices = [x for x in options if G.nodes[v]['ground_truth'] != G.nodes[x]['ground_truth']]
-
-                if random.uniform(0, 1) <= (1-p_PA): weights = [1 for v in choices]
-                else: weights = [choices_weights_c[G.nodes[v]['ground_truth']][v] for v in choices] 
-
-                if len(choices) == 0: continue
-                target = random.choices(choices, weights=weights, k=1)[0]
-                # if (intra_inter > h and random.uniform(0,1) <= r[G.nodes[target]['ground_truth']]/r[G.nodes[v]['ground_truth']]) or intra_inter<h:
-                G.add_edge(v, target)
-
-                choices_weights_c[G.nodes[v]['ground_truth']][v] += 1
-                choices_weights_c[G.nodes[target]['ground_truth']][target] += 1
-        
-    return G
-
-
 def original_hichba(n,r,h,p_PA,p_N,p_T):
     
     num_com=len(r)

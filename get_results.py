@@ -27,43 +27,6 @@ def get_gt_info(G, ground_truth):
     
     return info_dict
 
-def result_fig(G, ground_truth, cdm, mapping, mapped_metrics):
-    print('cdm name', cdm.method_name)
-    print('num gt coms', len(ground_truth.communities))
-    print('num pred coms', len(cdm.communities))
-
-    # exit()
-    metric = 'mF1'
-    for metric in ['mFCCN', 'mF1', 'mFCCE']:
-        x = [len(gt_com) for gt_com in ground_truth.communities]
-        # x = evaluation.internal_edge_density(G, ground_truth, summary=False) # density
-        # x = evaluation.conductance(G, ground_truth, summary=False) # conductance
-
-        metric_score = [metrics[metric] for metrics in mapped_metrics]
-
-        fig, ax = plt.subplots()
-
-        a, b = np.polyfit(x, metric_score, 1)
-
-        ax.scatter(x, metric_score, color=colors[0])
-
-        x_fm = [min(x), max(x)]
-        y_fm = [a*x_fm[0]+b, a*x_fm[1]+b]
-        ax.plot(x_fm, y_fm, '--', color=colors[1], 
-            label='FM='+str(round(calc_fairness_metric(x,metric_score), 3)))
-
-        plt.title(f'{cdm.method_name}')
-        ax.set_ylim(0, 1.05)
-        ax.set_xlabel('Community size', fontsize=fontsize_label)
-        ax.set_ylabel(metric[1:], fontsize=fontsize_label)        
-        ax.tick_params(axis='both', labelsize=fontsize_ticks)
-        ax.legend(fontsize=fontsize_ticks)
-
-        save_or_show_fig(f'{cdm.method_name}_{metric}_test.png', True)
-    exit()
-
-
-
 
 def get_metric_scores(G, ground_truth, cdm):
     """
@@ -76,7 +39,7 @@ def get_metric_scores(G, ground_truth, cdm):
     """
     pred_coms = cdm.communities
 
-    # mapping is sorted by gt coms: 0, ..., |C|-1
+    # mapping is sorted by gt coms: 0, ..., m-1. m=|C|
     mapping = iterative_mapping(ground_truth, cdm)
 
     mapped_metrics = []
@@ -87,8 +50,6 @@ def get_metric_scores(G, ground_truth, cdm):
             pred_com = None
         scores = calc_mapped_scores(G, ground_truth.communities[gt], pred_com)
         mapped_metrics.append(scores)
-
-    # result_fig(G, ground_truth, cdm, mapping, mapped_metrics)
 
     global_metrics = [calc_global_scores(G, gt_com, pred_coms) 
         for gt_com in ground_truth.communities]
@@ -135,6 +96,7 @@ def get_fm_results(metric_scores, x, ground_truth, cdm):
     }
     return fm_scores
 
+
 def result_hub(data_path, net_name, res_path):
     """
     Collects results and puts them in result_dict to be stored
@@ -152,7 +114,7 @@ def result_hub(data_path, net_name, res_path):
     gt_coms = node_clustering_dict['ground_truth'].communities
     gt_info = get_gt_info(G, ground_truth)
 
-    # print_network_info(G, net_name, gt_coms)    
+    # print_network_info(G, net_name, gt_coms)
 
     attributes = ['size', 'density', 'conductance']
 
@@ -166,7 +128,6 @@ def result_hub(data_path, net_name, res_path):
         if cdm_name == 'ground_truth':
             continue
         cdm = node_clustering_dict[cdm_name]
-        # cdm = node_clustering_dict['Louvain']
 
         if not cdm:
             # invalid method
@@ -201,9 +162,12 @@ def result_hub(data_path, net_name, res_path):
     store = True
     for attr in attributes:
         filename = f'{res_path}/res_{attr[:4]}_{net_name}.pkl'
+        
+        # print results
         if show:
             print(attr)
             print(json.dumps(all_result_dict[attr], indent=4))
+        # store results
         if store:
             print(f'saving {filename}')
             with open(filename, 'wb') as handle:
@@ -235,9 +199,6 @@ if __name__ == '__main__':
         files = os.listdir(dir_path_input)
         net_names = sorted(list(set([file[:-10] for file in files 
             if file[-10:] == '_nodes.csv'])), reverse=False)
-
-        # net_names = [name for name in net_names if 'xi2' in name]
-        # net_names = net_names[3:]
 
         print('Networks run:', net_names)
         for net_name in net_names:

@@ -257,8 +257,6 @@ if __name__ == '__main__':
         files = os.listdir(dir_path_input)
         net_names = sorted(list(set([file[:-10] for file in files 
             if file[-10:] == '_nodes.csv'])))
-
-        # net_names = [name for name in net_names if 'xi6' in name]
         
         print('Networks run:', net_names)
         for net_name in net_names:
