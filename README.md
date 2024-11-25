@@ -35,6 +35,8 @@ Example of fairness analysis for the football network regarding size with FCCN a
 
 
 ## Code usage
+<img src="https://github.com/user-attachments/assets/841b59db-cd18-43ee-9606-dce3ff86c51c" alt="step_by_step">
+
 Example of using set_communities.py, get_results.py, and create_figures.py. We use the data in data/synthetic/example. The code requires the required directory to be provided after `-d`. set_community.py requires data from /data/, get_results.py requires data from /data_applied_methods.py/, and create_figures.py requires data from /results/.
 
 Network generation
